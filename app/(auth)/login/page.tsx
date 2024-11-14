@@ -17,7 +17,7 @@ export default function LoginPage() {
       ></Link>
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="basis-1/2">
-          <img src="https://illustrations.popsy.co/gray/studying.svg" />
+          <img src="/csislogo.gif" alt="csis logo" className="w-full" />
         </div>
         <div className="mx-auto flex w-full flex-col items-center justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center items-center justify-center">

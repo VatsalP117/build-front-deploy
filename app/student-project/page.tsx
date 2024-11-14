@@ -83,6 +83,10 @@ export default function ProfileForm(props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [formatedStartDate, setFormatedStartDate] = useState("");
+  const [formatedEndDate, setFormatedEndDate] = useState("");
   useEffect(() => {
     const response = fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/student/getprojectdescription`,
@@ -102,6 +106,35 @@ export default function ProfileForm(props) {
         console.log(data);
         setProjectDetails(data);
       });
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/deadline`, {
+      method: "GET",
+      withCredentials: true,
+    }).then((response) => {
+      if (response.status === 200) {
+        response.json().then((data) => {
+          setStartDate(data.startDate);
+          setEndDate(data.endDate);
+          // console.log(typeof data.startDate);
+          // console.log(data.startDate);
+          setFormatedStartDate(
+            new Date(data.startDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          );
+          setFormatedEndDate(
+            new Date(data.endDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          );
+        });
+      } else {
+        //toast("Failed to fetch student details");
+      }
+    });
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -118,6 +151,10 @@ export default function ProfileForm(props) {
   return (
     <div className="container pt-12 flex flex-col">
       <Back />
+      <p className="text-center text-xl font-bold mt-10 text-red-500">
+        Deadline for Applications is from {formatedStartDate} to{" "}
+        {formatedEndDate}
+      </p>
       <h1 className="text-5xl font-bold mb-8">Project Details</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -263,39 +300,48 @@ export default function ProfileForm(props) {
               </Select>
             </div>
           </div>
-          <Button
-            onClick={async () => {
-              try {
-                //console.log(remarks, category);
-                const response: any = await fetch(
-                  `${process.env.NEXT_PUBLIC_API_URL}/api/student/applyforproject`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      projectid: projectId,
-                      remarks,
-                      category,
-                    }),
-                    withCredentials: true,
+          {new Date() >= new Date(startDate) &&
+            new Date() <= new Date(endDate) && (
+              <Button
+                onClick={async () => {
+                  try {
+                    //console.log(remarks, category);
+                    const response: any = await fetch(
+                      `${process.env.NEXT_PUBLIC_API_URL}/api/student/applyforproject`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          projectid: projectId,
+                          remarks,
+                          category,
+                        }),
+                        withCredentials: true,
+                      }
+                    );
+                    if (response.status === 200) {
+                      toast("Successfully applied to project");
+                      router.push("/student");
+                    } else {
+                      toast("Failed to apply to project");
+                    }
+                  } catch (err) {
+                    console.log(err);
+                    toast("Failed to apply to project");
                   }
-                );
-                if (response.status === 200) {
-                  toast("Successfully applied to project");
-                  router.push("/student");
-                } else {
-                  toast("Failed to apply to project");
-                }
-              } catch (err) {
-                console.log(err);
-                toast("Failed to apply to project");
-              }
-            }}
-          >
-            Apply
-          </Button>
+                }}
+              >
+                Apply
+              </Button>
+            )}
+          {(new Date() < new Date(startDate) ||
+            new Date() > new Date(endDate)) && (
+            <p className="text-center text-xl font-bold mt-10 text-red-500">
+              Sorry, deadline has passed. You can't apply for this project.
+            </p>
+          )}
         </form>
       </Form>
     </div>

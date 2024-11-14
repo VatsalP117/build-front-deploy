@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { useEffect, useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/sonner";
@@ -21,10 +22,19 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
+          <header className="flex justify-start p-4 h-[84px] border-b">
+            <img
+              src="/csislogo.gif" // Replace with your logo path
+              alt="Organization Logo"
+              width={300}
+              height={200}
+              className="object-contain"
+            />
+          </header>
           {children}
           <Toaster />
           <Footer />
