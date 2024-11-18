@@ -50,7 +50,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
@@ -80,6 +80,7 @@ export default function ProfileForm(props) {
   const [projectDetails, setProjectDetails] = useState({});
   const [remarks, setRemarks] = useState("No Remarks");
   const [category, setCategory] = useState("SOP");
+  const [cgpa, setCgpa] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
@@ -87,6 +88,25 @@ export default function ProfileForm(props) {
   const [endDate, setEndDate] = useState("");
   const [formatedStartDate, setFormatedStartDate] = useState("");
   const [formatedEndDate, setFormatedEndDate] = useState("");
+  const [skills, setSkills] = useState([]);
+  const [currentSkill, setCurrentSkill] = useState("");
+
+  const handleAddSkill = () => {
+    if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
+      setSkills([...skills, currentSkill.trim()]);
+      setCurrentSkill("");
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleAddSkill();
+    }
+  };
+
+  const removeSkill = (skillToRemove) => {
+    setSkills(skills.filter((skill) => skill !== skillToRemove));
+  };
   useEffect(() => {
     const response = fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/student/getprojectdescription`,
@@ -272,6 +292,51 @@ export default function ProfileForm(props) {
           <Separator />
           <div className="max-w-lg flex flex-col gap-4">
             <h1 className="text-3xl font-bold">Student Details</h1>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="cgpa">CGPA</Label>
+              <Input
+                type="text"
+                id="cgpa"
+                placeholder="Enter your CGPA"
+                onChange={(e) => setCgpa(e.target.value)}
+              />
+            </div>
+            <div className="w-full max-w-md space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="skill">Relevant Skills</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="skill"
+                    placeholder="Enter skills relevant to the project"
+                    value={currentSkill}
+                    onChange={(e) => setCurrentSkill(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                  <Button
+                    onClick={handleAddSkill}
+                    disabled={!currentSkill.trim()}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="flex items-center gap-1 px-3 py-1"
+                  >
+                    {skill}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-destructive"
+                      onClick={() => removeSkill(skill)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
             <div>
               <Textarea
                 type="text"
@@ -302,10 +367,47 @@ export default function ProfileForm(props) {
           </div>
           {new Date() >= new Date(startDate) &&
             new Date() <= new Date(endDate) && (
+              // <Button
+              //   onClick={async () => {
+              //     try {
+              //       //console.log(remarks, category);
+              //       const response: any = await fetch(
+              //         `${process.env.NEXT_PUBLIC_API_URL}/api/student/applyforproject`,
+              //         {
+              //           method: "POST",
+              //           headers: {
+              //             "Content-Type": "application/json",
+              //           },
+              //           body: JSON.stringify({
+              //             projectid: projectId,
+              //             remarks,
+              //             category,
+              //           }),
+              //           withCredentials: true,
+              //         }
+              //       );
+              //       if (response.status === 200) {
+              //         toast("Successfully applied to project");
+              //         router.push("/student");
+              //       } else {
+              //         toast("Failed to apply to project");
+              //       }
+              //     } catch (err) {
+              //       console.log(err);
+              //       toast("Failed to apply to project");
+              //     }
+              //   }}
+              // >
+              //   Apply
+              // </Button>
               <Button
                 onClick={async () => {
                   try {
-                    //console.log(remarks, category);
+                    // Create the formatted remarks string
+                    const formattedRemarks = `CGPA: ${cgpa}\r\n\nSkills: ${skills.join(
+                      ", "
+                    )}\r\n\nStatement of Motivation:\r\n${remarks}`;
+
                     const response: any = await fetch(
                       `${process.env.NEXT_PUBLIC_API_URL}/api/student/applyforproject`,
                       {
@@ -315,10 +417,10 @@ export default function ProfileForm(props) {
                         },
                         body: JSON.stringify({
                           projectid: projectId,
-                          remarks,
+                          remarks: formattedRemarks, // Use the formatted string here
                           category,
                         }),
-                        withCredentials: true,
+                        // withCredentials: true,
                       }
                     );
                     if (response.status === 200) {

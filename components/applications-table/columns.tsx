@@ -75,7 +75,8 @@ export const columns: ColumnDef<Application>[] = [
             <Button>View</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
-            {row.getValue("remarks")}
+            {/* {row.getValue("remarks")} */}
+            <div className="whitespace-pre-line">{row.getValue("remarks")}</div>
           </DialogContent>
         </Dialog>
       );
